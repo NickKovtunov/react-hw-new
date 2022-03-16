@@ -1,43 +1,11 @@
 import './App.css';
-import { useEffect, useState } from "react";
 import {connect} from 'react-redux';
 
-function App(props: any) {
-  //useEffect(()=>console.log(props), [props]);
+function App(props:any) {
 
   function findReviewer() {
     if (props.login && props.repo) {
       props.fetchData(props.login, props.repo, onSuccess);
-      /*fetch(`https://api.github.com/repos/${props.login}/${props.repo}/contributors`)
-        .then((response) => response.json())
-        .then((data) => {
-          let c = ""
-          data.forEach(function(item:any) {
-            c = c + ' ' + item.login
-          });
-          props.onChangeContributors(c)
-          if (!data && data.length > 0) {
-            props.onChangeReviewer(null);
-            return;
-          }
-          const filtered = data
-            .filter((item:any) => !props.blackList
-              .split(',').map((blackItem:any) => blackItem.trim())
-              .includes(item.login)
-            )
-          if (filtered && filtered.length > 0) {
-            const randomIndex = Math.floor(Math.random() * filtered.length);
-            props.onChangeReviewer(filtered[randomIndex]);
-          } else {
-            props.onChangeReviewer(null);
-          }
-        })
-        .then((response) => {
-          localStorage.setItem('login', JSON.stringify(props.login));
-          localStorage.setItem('repo', JSON.stringify(props.repo));
-          localStorage.setItem('blackList', JSON.stringify(props.blackList));
-        })
-        .catch((error) => console.error(error));*/
     } else{
       alert("Не заполнены необходимые поля ()")
     }
@@ -72,21 +40,6 @@ function App(props: any) {
     return data
   }
 
-  function User(props:any) {
-    if (props.user) {
-      return (
-        <div>
-          <img height="200px" src={props.user.avatar_url} alt="" />
-          <div>{props.user.login}</div>
-        </div>
-      );
-    } else {
-      return (
-        <div></div>
-      );
-    }
-  }
-
   return (
     <div className="App">
       <header className="App-header">
@@ -114,7 +67,12 @@ function App(props: any) {
         <button className="btn" onClick={findReviewer}>Найти проверяющего</button>
         
         <h3>Результаты поиска</h3>
-        <User label={"Проверяющий"} user={props.reviewer}/>
+        {props.reviewer &&
+          <div>
+            <img height="200px" src={props.reviewer.avatar_url} alt="" />
+            <div>{props.reviewer.login}</div>
+          </div>
+        }
 
         <h3>Контрибьютеры репозитория</h3>
         <p className='contributors'>{props.contributors}</p>
