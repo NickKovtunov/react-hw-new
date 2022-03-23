@@ -1,13 +1,14 @@
+import { Dispatch, AnyAction } from "redux";
 const initialState = {
-    login: "NewNadym",
-    repo: "NewNadym.github.io",
-    blackList: "NewNadym",
+    login: null,
+    repo: null,
+    blackList: null,
     reviewer: null,
     contributors: null,
     rawResult: null,
 }
 
-export default function reducer(state = initialState, action:any){
+export default function reducer(state = initialState, action: AnyAction){
     switch(action.type){
         case 'ChangeLogin':
             return {

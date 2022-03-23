@@ -1,41 +1,72 @@
 import './App.css';
 import {connect} from 'react-redux';
+import { Dispatch, useRef } from 'react';
+import { AnyAction } from 'redux';
 
-function App(props:any) {
+function App(props:{login: string, 
+                    repo: string, 
+                    blackList: string, 
+                    reviewer: {login: string, avatar_url: string}, 
+                    contributors: string,
+                    onChangeContributors: (c?:string) => void,
+                    onChangeReviewer: (c?:string) => void,
+                    onChangeLogin: (c:string) => void,
+                    onChangeRepo: (c:string) => void,
+                    onChangeBlackList: (c:string) => void,
+                    fetchData: (login: string, repo: string, onSuccess: any) => void
+                  }) 
+{
+  const loginRef = useRef<HTMLInputElement>(null);
+  const repoRef = useRef<HTMLInputElement>(null);
+  const blackListRef = useRef<HTMLInputElement>(null);
+  const localProps = {login: "", repo: "", blackList: ""}
 
-  function findReviewer() {
-    if (props.login && props.repo) {
-      props.fetchData(props.login, props.repo, onSuccess);
+  function findReviewer(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (loginRef && loginRef.current) {
+      localProps.login = loginRef.current.value
+    }
+    if (repoRef && repoRef.current) {
+      localProps.repo = repoRef.current.value
+    }
+    if (blackListRef && blackListRef.current) {
+      localProps.blackList = blackListRef.current.value
+    }
+    if (localProps.login && localProps.repo) {
+      props.fetchData(localProps.login, localProps.repo, onSuccess);
     } else{
-      alert("Не заполнены необходимые поля ()")
+      alert("Не заполнены необходимые поля")
     }
   }
-
-  const onSuccess = (data: any) => {
+  //{login: string}[]
+  const onSuccess = (data: any ) => {
     let c = ""
-    data.forEach(function(item:any) {
+    data.forEach(function(item:{login:string}) {
       c = c + ' ' + item.login
     });
     props.onChangeContributors(c)
     if (!data && data.length > 0) {
-      props.onChangeReviewer(null);
+      props.onChangeReviewer(undefined);
       return;
     }
     const filtered = data
-      .filter((item:any) => !props.blackList
-        .split(',').map((blackItem:any) => blackItem.trim())
+      .filter((item:{login:string}) => !localProps.blackList
+        .split(',').map((blackItem:string) => blackItem.trim())
         .includes(item.login)
       )
     if (filtered && filtered.length > 0) {
       const randomIndex = Math.floor(Math.random() * filtered.length);
       props.onChangeReviewer(filtered[randomIndex]);
     } else {
-      props.onChangeReviewer(null);
+      props.onChangeReviewer(undefined);
     }
 
-    localStorage.setItem('login', JSON.stringify(props.login));
-    localStorage.setItem('repo', JSON.stringify(props.repo));
-    localStorage.setItem('blackList', JSON.stringify(props.blackList));
+    localStorage.setItem('login', JSON.stringify(localProps.login));
+    localStorage.setItem('repo', JSON.stringify(localProps.repo));
+    localStorage.setItem('blackList', JSON.stringify(localProps.blackList));
+    props.onChangeLogin(localProps.login);
+    props.onChangeRepo(localProps.repo);
+    props.onChangeBlackList(localProps.blackList);
 
     return data
   }
@@ -46,26 +77,24 @@ function App(props:any) {
         <h1>React. Найти ревьюера</h1>
 
         <h3>Настройки</h3>
-        <input className='custom_input'
-                placeholder='login' 
-                name="login" 
-                value={props.login}
-                onChange={(e) => props.onChangeLogin(e.target.value)}/>
+        <form onSubmit={findReviewer}>
+          <input className='custom_input'
+                  placeholder='login' 
+                  name="login" 
+                  ref={loginRef}/>
 
-        <input className='custom_input'
-                placeholder='repo' 
-                name="repo" 
-                value={props.repo} 
-                onChange={(e) => props.onChangeRepo(e.target.value)}/>
+          <input className='custom_input'
+                  placeholder='repo' 
+                  name="repo" 
+                  ref={repoRef}/>
 
-        <input className='custom_input'
-                placeholder='blackList' 
-                name="blackList" 
-                value={props.blackList} 
-                onChange={(e) => props.onChangeBlackList(e.target.value)}/>
+          <input className='custom_input'
+                  placeholder='blackList' 
+                  name="blackList" 
+                  ref={blackListRef}/>
 
-        <button className="btn" onClick={findReviewer}>Найти проверяющего</button>
-        
+          <button className="btn">Найти проверяющего</button>
+        </form>
         <h3>Результаты поиска</h3>
         {props.reviewer &&
           <div>
@@ -81,7 +110,11 @@ function App(props:any) {
   );
 }
 
-function mapStateToProps (state: any) {
+function mapStateToProps (state: {login: string, 
+                          repo: string, 
+                          blackList: string, 
+                          reviewer: {login: string, avatar_url: string}, 
+                          contributors: string}) {
   return {
     login: state.login,
     repo: state.repo,
@@ -91,13 +124,13 @@ function mapStateToProps (state: any) {
   }
 }
 
-function mapDispatchToProps(dispatch: any){
+function mapDispatchToProps(dispatch: Dispatch<AnyAction>){
   return{
-    onChangeLogin: (login:any) => dispatch({type: 'ChangeLogin', payload: login}),
-    onChangeRepo: (repo:any) => dispatch({type: 'ChangeRepo', payload: repo}),
-    onChangeBlackList: (blackList:any) => dispatch({type: 'ChangeBlackList', payload: blackList}),
-    onChangeReviewer: (reviewer:any) => dispatch({type: 'ChangeReviewer', payload: reviewer}),
-    onChangeContributors: (contributors:any) => dispatch({type: 'ChangeContributors', payload: contributors}),
+    onChangeLogin: (login:string) => dispatch({type: 'ChangeLogin', payload: login}),
+    onChangeRepo: (repo:string) => dispatch({type: 'ChangeRepo', payload: repo}),
+    onChangeBlackList: (blackList:string) => dispatch({type: 'ChangeBlackList', payload: blackList}),
+    onChangeReviewer: (reviewer?:string) => dispatch({type: 'ChangeReviewer', payload: reviewer}),
+    onChangeContributors: (contributors?:string) => dispatch({type: 'ChangeContributors', payload: contributors}),
     fetchData: (login: string, repo: string, onSuccess: any) => dispatch({
       type: 'FetchData',
       meta: {

@@ -1,4 +1,6 @@
-export default (dispatch:any) => (next:any) => (action:any) => {
+import { Dispatch, AnyAction } from "redux";
+
+export default (dispatch:any) => (next:Dispatch<AnyAction>) => (action: AnyAction) => {
   if (!action.meta || action.meta.type !== 'api') {
     return next(action);
   }
