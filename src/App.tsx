@@ -1,25 +1,16 @@
 import './App.css';
-import {connect} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Dispatch, useRef } from 'react';
 import { AnyAction } from 'redux';
 
-function App(props:{login: string, 
-                    repo: string, 
-                    blackList: string, 
-                    reviewer: {login: string, avatar_url: string}, 
-                    contributors: string,
-                    onChangeContributors: (c?:string) => void,
-                    onChangeReviewer: (c?:string) => void,
-                    onChangeLogin: (c:string) => void,
-                    onChangeRepo: (c:string) => void,
-                    onChangeBlackList: (c:string) => void,
-                    fetchData: (login: string, repo: string, onSuccess: any) => void
-                  }) 
+function App() 
 {
   const loginRef = useRef<HTMLInputElement>(null);
   const repoRef = useRef<HTMLInputElement>(null);
   const blackListRef = useRef<HTMLInputElement>(null);
-  const localProps = {login: "", repo: "", blackList: ""}
+  const localProps = {login: "", repo: "", blackList: ""};
+  const props = useSelector((state) => state.rd);
+  const dispatch = useDispatch();
 
   function findReviewer(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,7 +24,13 @@ function App(props:{login: string,
       localProps.blackList = blackListRef.current.value
     }
     if (localProps.login && localProps.repo) {
-      props.fetchData(localProps.login, localProps.repo, onSuccess);
+      dispatch({
+        type: 'FetchData',
+        meta: {
+          type: 'api',
+          url: `https://api.github.com/repos/${localProps.login}/${localProps.repo}/contributors`,
+          onSuccess
+        }})
     } else{
       alert("Не заполнены необходимые поля")
     }
@@ -44,9 +41,9 @@ function App(props:{login: string,
     data.forEach(function(item:{login:string}) {
       c = c + ' ' + item.login
     });
-    props.onChangeContributors(c)
+    dispatch({type: 'ChangeContributors', payload: c})
     if (!data && data.length > 0) {
-      props.onChangeReviewer(undefined);
+      dispatch({type: 'ChangeReviewer', payload: undefined});
       return;
     }
     const filtered = data
@@ -56,17 +53,17 @@ function App(props:{login: string,
       )
     if (filtered && filtered.length > 0) {
       const randomIndex = Math.floor(Math.random() * filtered.length);
-      props.onChangeReviewer(filtered[randomIndex]);
+      dispatch({type: 'ChangeReviewer', payload: filtered[randomIndex]})
     } else {
-      props.onChangeReviewer(undefined);
+      dispatch({type: 'ChangeReviewer', payload: undefined})
     }
 
     localStorage.setItem('login', JSON.stringify(localProps.login));
     localStorage.setItem('repo', JSON.stringify(localProps.repo));
     localStorage.setItem('blackList', JSON.stringify(localProps.blackList));
-    props.onChangeLogin(localProps.login);
-    props.onChangeRepo(localProps.repo);
-    props.onChangeBlackList(localProps.blackList);
+    dispatch({type: 'ChangeLogin', payload: localProps.login});
+    dispatch({type: 'ChangeRepo', payload: localProps.repo});
+    dispatch({type: 'ChangeBlackList', payload: localProps.blackList});
 
     return data
   }
@@ -124,21 +121,4 @@ function mapStateToProps (state: {login: string,
   }
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>){
-  return{
-    onChangeLogin: (login:string) => dispatch({type: 'ChangeLogin', payload: login}),
-    onChangeRepo: (repo:string) => dispatch({type: 'ChangeRepo', payload: repo}),
-    onChangeBlackList: (blackList:string) => dispatch({type: 'ChangeBlackList', payload: blackList}),
-    onChangeReviewer: (reviewer?:string) => dispatch({type: 'ChangeReviewer', payload: reviewer}),
-    onChangeContributors: (contributors?:string) => dispatch({type: 'ChangeContributors', payload: contributors}),
-    fetchData: (login: string, repo: string, onSuccess: any) => dispatch({
-      type: 'FetchData',
-      meta: {
-        type: 'api',
-        url: `https://api.github.com/repos/${login}/${repo}/contributors`,
-        onSuccess
-      }})
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default App;
