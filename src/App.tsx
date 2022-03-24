@@ -38,7 +38,7 @@ function App(props:{login: string,
       alert("Не заполнены необходимые поля")
     }
   }
-  //{login: string}[]
+
   const onSuccess = (data: any ) => {
     let c = ""
     data.forEach(function(item:{login:string}) {

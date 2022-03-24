@@ -1,6 +1,6 @@
-import { Dispatch, AnyAction } from "redux";
+import { MiddlewareAPI, Dispatch, AnyAction } from "redux";
 
-export default (dispatch:any) => (next:Dispatch<AnyAction>) => (action: AnyAction) => {
+export default ({ dispatch, getState }: MiddlewareAPI) => (next:Dispatch<AnyAction>) => (action: AnyAction) => {
   if (!action.meta || action.meta.type !== 'api') {
     return next(action);
   }
